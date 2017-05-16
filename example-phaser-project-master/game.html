@@ -1,0 +1,321 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>ChickTech JavaScript</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js"></script>
+
+    <!--loading our CSS file-->
+    <link rel="stylesheet" type="text/css" href="mystyle.css">
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var onClick = function() {
+        window.open('/phaser-project/game.html');
+game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+game.time.events.stop = false;
+    };
+
+var stateText;
+ var life = 3;
+    var timer;
+    var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+    var weapon;
+    var spacebar;
+	var sprite;
+
+    function preload() {
+        //load images
+        game.load.image('sky', 'space-background.jpg');
+        game.load.image('snitch', 'assets/lilbaddie.gif');
+	game.load.image('ground', 'assets/platform.png');
+        game.load.image('bludger', 'assets/baddiespaceship.gif');
+        game.load.image('hp', 'assets/ufo.png', 64, 96);
+        game.load.image('firstaid', 'assets/firstaid.png');
+	game.load.image('bullet', 'assets/betterbullet.png');
+    }
+
+    function create() {
+      
+        //test
+
+ stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff' });
+    stateText.anchor.setTo(0.5, 0.5);
+  
+	//timer
+	timer = 0
+
+        //initialize lives to 5
+        life = 5;
+
+        //add the sky
+        game.add.sprite(0, 0, 'sky');
+
+        //add a group to hold the ground
+        platforms = game.add.group();
+
+        //enable physics on the platforms group
+        platforms.enableBody = true;
+
+        // Here we create the ground.
+        var ground = platforms.create(0, game.world.height - 1, 'ground');
+
+        //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+        ground.scale.setTo(2, 2);
+
+        //  This stops it from falling away when you jump on it
+        ground.body.immovable = true;
+
+        //add player
+        player = game.add.sprite(32, game.world.height - 150, 'hp');
+
+        //enable physics on player
+        game.physics.arcade.enable(player);
+
+        //give player gravity
+        //player.body.gravity.y = 300;
+
+        player.animations.add('left', [4, 5, 6, 7], 10, true);
+        player.animations.add('right', [8, 9, 10, 11], 10, true);
+
+        //  Our controls.
+        cursors = game.input.keyboard.createCursorKeys();
+
+	spacebar = game.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);     
+
+        //create group for snitches & the bludgers
+        snitches = game.add.group();
+
+        bludgers = game.add.group();
+
+	firstaid = game.add.group();
+
+        //create a physics body
+        snitches.enableBody = true;
+        bludgers.enableBody = true;
+	firstaid.enableBody = true;
+
+        //create new snitches in a loop, every 400 milliseconds
+       game.time.events.loop(700, createSnitch);
+
+       game.time.events.loop(5000, createBludger);
+
+	game.time.events.loop(10000, createFirstaid);
+
+	game.time.events.loop(Phaser.Timer.SECOND, updateTimer);	
+
+	//  Creates 1 single bullet, using the 'bullet' graphic
+    	weapon = game.add.weapon(1, 'bullet');
+
+    	//  The bullet will be automatically killed when it leaves the world bounds
+    	weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+
+    	//  Because our bullet is drawn facing up, we need to offset its rotation:
+    	weapon.bulletAngleOffset = 90;
+
+    	//  The speed at which the bullet is fired
+    	weapon.bulletSpeed = 400;     
+
+	//  Tell the Weapon to track the 'player' Sprite, offset by 14px horizontally, 0 vertically
+    	weapon.trackSprite(player, 28, 0);
+
+    	   
+
+	//add text for the lives
+        lifeText = game.add.text(16, 16, 'Lives: 5', { fontSize: '32px', fill: '#fff' });
+
+	//add text for the timer
+	timerText = game.add.text(600, 16, 'Time: 0', {fontSize: '32px', fill: '#fff' });
+
+	      //add text for end screen
+	      stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff' });
+        stateText.anchor.setTo(0.5, 0.5);
+        stateText.visible = false;
+
+
+game.time.events.start();
+
+    }
+
+    function update() {
+
+   
+
+	//check if player touches a snitch - if so, calls collectSnitches
+        game.physics.arcade.overlap(player, snitches, collectSnitches, null, this);
+
+        game.physics.arcade.overlap(player, bludgers, hitByBludger, null, this);
+
+	game.physics.arcade.overlap(player, firstaid, hitByFirstaid, null, this);
+
+	game.physics.arcade.overlap(weapon, snitches, collisionHandler, null, this);
+
+	game.physics.arcade.overlap(weapon, bludgers, collisionHandler, null, this);
+
+        //check if player is touching the platform - stops from falling through ground
+        game.physics.arcade.collide(player, platforms);
+
+        //  Reset the players velocity (movement)
+        player.body.velocity.x = 0;
+	player.body.velocity.y = 0;
+
+        //left key control
+        if (cursors.left.isDown)
+        {
+            //  Move to the left
+            player.body.velocity.x = -200;
+
+            //player.animations.play('left');
+        }
+        //right key control
+        else if (cursors.right.isDown)
+        {
+            //  Move to the right
+            player.body.velocity.x = 200;
+
+            //player.animations.play('right');
+        }
+else if (cursors.up.isDown)
+        {
+            //  Move to the right
+            player.body.velocity.y = -200;
+
+            //player.animations.play('up');
+}
+else if (cursors.down.isDown)
+        {
+            //  Move to the right
+            player.body.velocity.y = 200;
+ }
+       //no keys pressed
+        else
+        {
+            //  Stand still
+            player.animations.stop();
+
+            player.frame = 0;
+        }
+
+	if (spacebar.isDown)
+	{
+		weapon.fire();
+	}	
+    }
+function updateTimer() {
+	//increase the timer value
+	timer = timer + 1;
+	//update the display text
+	timerText.text = 'Time: ' + timer;
+}
+
+    //collect the snitch - decrease lives and kill the "collected" snitch
+    function collectSnitches(player, snitch) {
+	game.physics.arcade.overlap(player, snitch, snitchShake, null, this);       
+	 if (life>0){--life;
+        snitch.kill();
+        lifeText.text = 'Lives: ' + life;}
+else {stateText.text=" GAME OVER \n Click to restart";
+        stateText.visible = true;
+
+	game.time.events.stop();
+
+        game.input.onTap.addOnce(create,this); player.kill()}
+}
+
+
+    //get hit by bludger, decrease life by 2 and kill the bludger to remove it from the screen
+    function hitByBludger(player, bludger) {
+      	game.physics.arcade.overlap(player, bludger, bludgerShake, null, this);
+	 if (life-2 >0){life= life-2;
+
+        bludger.kill();
+        lifeText.text = 'Lives:  ' + life;}
+	else {stateText.text=" GAME OVER \n Click to restart";
+        stateText.visible = true;
+
+	game.time.events.stop();
+
+        //the "click to restart" handler
+        game.input.onTap.addOnce(create,this); player.kill()}
+}
+
+	//get hit by firstaid, get a life
+	function hitByFirstaid(player, firstaid) {
+	life++;
+	firstaid.kill();
+	lifeText.text = 'Lives: ' + life;}
+
+    //get hit by bludger, camera shake
+    function bludgerShake(player, bludger) { game.camera.shake(0.05, 500);
+    }
+
+ function snitchShake(player, snitch) { game.camera.shake(0.05, 500);
+    }
+
+    //create each falling snitch
+    function createSnitch() {
+        //generating a random number between 0 & 800 to determine where on the x axis the snitch appears
+        var where = (Math.random() * 800);
+
+        //actually create the snitch
+        var snitch = snitches.create(where, 0, 'snitch');
+
+        //set the value for gravity - controls how fast objects fall
+	snitch.scale.setTo(0.8, 0.8);
+        snitch.body.gravity.y = 50;
+
+    }
+
+    function createBludger() {
+        //generating a random number between 0 & 800 to determine where on the x axis the snitch appears
+        var where = (Math.random() * 800);
+
+        //actually create the snitch
+        var bludger = bludgers.create(where, 0, 'bludger');
+
+        bludger.scale.setTo(0.3, 0.3);
+        //set the value for gravity - controls how fast objects fall
+        bludger.body.gravity.y = 50;
+    }
+
+	function createFirstaid() {
+	//generating a random number between 0 & 800 to determine where on the x axis the firstaid appears
+	var where = (Math.random() * 800);
+	//actually create the firstaid	
+	var firstaidKit = firstaid.create(where, 0, 'firstaid');
+	
+	//controls how fast it falls
+	firstaidKit.body.gravity.y = 50;
+
+}
+
+	function render() {
+	weapon.debug();
+}
+
+function collisionHandler (player, snitch, bludger) {
+
+    //  When a bullet hits an alien we kill them both
+    bullet.kill();
+    snitch.kill();
+    bludger.kill();
+
+    //  And create an explosion :)
+    //var explosion = explosions.getFirstExists(false);
+    //explosion.reset(alien.body.x, alien.body.y);
+    //explosion.play('kaboom', 30, false, true);
+
+
+}
+
+
+	
+	
+
+</script>
+
+</body>
+</html>

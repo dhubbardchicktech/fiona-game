@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+    <!-- This is where we load JavaScript files that we need - here I'm loading phaser and bootstrap (a bunch of helpful classes
+    to make your websites look more modern and fancy!)-->
+    <meta charset="UTF-8" />
+    <title>ChickTech JavaScript</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <!--loading our CSS file-->
+    <link rel="stylesheet" type="text/css" href="mystyle.css">
+
+</head>
+<body background="horse-head-nebula.jpg"> </body>
+
+<div>
+    <!--These "row" and "col-md-4" classes are from bootstrap-->
+    <div class="row" style="color#ffffff">
+        <h1 style="color:white;">I'm Fiona!</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div><img height="529px" width="940px"src="netflix-logo.png" class="img-responsive"></div> 
+            <p>I'm a 9th grader at Wilson High School. In my spare time I like to read and watch Neflix.<p>
+
+        </div>
+        <div class="col-md-4">
+            <div><img src="civil-war.jpg" class="img-responsive"></div>
+            <p>I'm also a big fan of Harry Potter and Marvel.<p>
+
+        </div>
+        <div class="col-md-4">
+            <div><img src="travel.jpg" class="img-responsive"></div>
+            <p>When I grow up I want to be able to travel around the world.<p>
+
+        </div>
+    </div>
+</div>
+<!--The btn classes are also bootstrap-->
+<div><button type="button" class="btn btn-primary btn-lg center-block" onclick="onClick()">Let's play a game!</button></div>
+
+<script type="text/javascript">
+
+    //this opens a new window when you click the button with our game html! Since an entire URL is not specified,
+    //it opens relative to your current path - if you are on www.mywebsite.com/index.html, this would go to
+    //www.mywebsite.com/game.html
+    var onClick = function() {
+      window.open('/game.html');
+    };
+
+
+</script>
+
+
+</html>
